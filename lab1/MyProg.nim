@@ -1,27 +1,99 @@
-import sugar
-import nigui
+# Імпорт графічних елементів з бібліотеки wNim
+# Вона не є стандартною, необхідно встановити командою
+# `$ nimble install wNim`
+import wNim/[wApp, wFrame, wMenuBar, wMenu, wTextCtrl]
+# В Nim допускається множинний імпорт підмодулів із одного
+# модуля (навіть рекомендовано, якщо в цьому є потреба)
+
+# Імпорт модулів, які необхідно було зробити згідно із
+# завданням
 import moduleOne
+import moduleTwo
+# Для назв модулів дозволено лише латинські літери.
 
-const buttonWidth = 150
+# Модулі надають публічні функції, і для доступу до них
+# не треба дописувати назву модуля, просто зробити виклик.
 
-app.init()
+# Ключове слово type позначає оголошення окремого типу,
+# об'єкта.
+# В даному разі оголошується enumerated із назвою MenuID,
+# id* -- це можливі значення цього enumerated.
+type
+  MenuID = enum
+    idExit, idModuleOne, idModuleTwo
 
-var window = newWindow()
-var mainContainer = newLayoutContainer(Layout_Vertical)
-window.add(mainContainer)
+# Створимо екземпляр об'єкта "Додаток"
+let app = App()
+# Він припинить свою роботу, коли усі вікна будуть закриті
+# (це за нормальних умов, коли програміст нічого не наплутав)
 
-var buttons = newLayoutContainer(Layout_Horizontal)
-mainContainer.add(buttons)
+# Створимо вікно із підписом MyProg та розмірами 500х400
+let frame = Frame(title="MyProg", size=(500, 400))
+# title=, size= -- це іменовані параметри.
+# В чому їх перевага?
+# 
+# Наприклад, у вас є функція fn(a, b, c), причому
+# усі аргументи можуть прийняти значення за умовчанням,
+# якщо їх не передати.
+# 
+# Якщо вам необхідно лише передати c, то, в такому разі,
+# щоб не писати зайві символи, можна викликати функцію так:
+# fn(c="Foo")
 
-var textArea = newTextArea()
-mainContainer.add(textArea)
-textArea.addLine("Встановлено логування.")
+# Створимо об'єкт "Панель меню", прив'яжемо до вікна frame
+let menuBar = MenuBar(frame)
 
-var button1 = newButton("Модуль 1")
-buttons.add(button1)
-button1.width = buttonWidth
-button1.onClick = (event: ClickEvent) =>
-  func_mod_one(window, textArea)
+# Створимо об'єкт "Поле тексту", прив'яжемо до вікна frame
+let logText = TextCtrl(frame, style=wTeMultiLine)
+# wTeMultiLine дає змогу перетворити поле тексту із
+# однострічкового в багатострічкове
 
-window.show()
-app.run()
+# Створимо об'єкт "Категорія панелі меню", прив'яжемо
+# до menuBar, підпишемо "Project".
+# Особливість у тому, що перед назвою елемента меню
+# необхідно писати амперсанд &.
+let menuProject = Menu(menuBar, "&Project")
+
+# Додамо до категорії Project елемент "Вийти",
+# прив'яжемо дію натискання на елемент до idExit,
+# це дасть змогу відстежити подію та відреагувати на неї.
+menuProject.append(idExit, "&Exit")
+
+# Створимо інший об'єкт "Категорія панелі меню", прив'яжемо
+# до menuBar, підпишемо "Module".
+let menuModule = Menu(menubar, "&Module")
+
+# Додамо до категорії Module елементи "Module 1",
+# "Module 2", та прив'яжемо відповідні id*.
+menuModule.append(idModuleOne, "&Module 1")
+menuModule.append(idModuleTwo, "&Module 2")
+
+# frame.connect підписується на певну подію.
+# Перший аргумент -- ідентифікатор класу елементів,
+# другий -- ідентифікатор елемента.
+#
+# Якщо у frame відбулась подія в меню з ідентифікатором
+# idExit, то:
+frame.connect(wEvent_Menu, idExit) do ():
+  # Знищити екземпляр frame (закрити вікно)
+  frame.delete()
+
+# Відповідно, якщо у frame відбулась подія з
+# ідентифікатором idModuleOne, то:
+frame.connect(wEvent_Menu, idModuleOne) do ():
+  # Викликати функцію з першого модуля, передавши
+  # контекст вікна
+  func_moduleOne(frame)
+
+# Думаю, для цього пояснювати не варто
+frame.connect(wEvent_Menu, idModuleTwo) do ():
+  func_moduleTwo(logText)
+
+# Перемістити вікно у центр дисплею
+frame.center()
+
+# Показати вікно
+frame.show()
+
+# Запуск, очікування на сигнал завершення
+app.mainLoop()
