@@ -141,11 +141,12 @@ wClass(wShapeObjectsEditor of wEditor):
 
     self.idUndo do ():
       # Для скасування видаляємо останню фігуру
-      self.removeLastShape()
-      # І перемальовуємо екран
-      self.drawScreen()
-      # Пишемо на нижній рядок:
-      self.information "Скасовано останню дію"
+      # І, якщо це вдалось (стек був не порожнім):
+      if self.removeLastShape():
+        # Перемальовуємо вікно
+        self.drawScreen()
+        # Пишемо на нижній рядок:
+        self.information "Скасовано останню дію"
 
     self.idRedo do ():
       # Поки що не вміє скасовувати
@@ -198,9 +199,16 @@ wClass(wShapeObjectsEditor of wEditor):
         # І, якщо це не крапка
         if currentShape != sDot:
           # Видаляємо тінь
-          self.removeLastShape()
+          discard self.removeLastShape()
           # Це для того, щоб можно було малювати безліч крапок
           # без того, щоб мучити руку.
+          #
+          # Що таке discard?
+          # Нім не любить, коли якесь значення "висить" у рядку
+          # і не передане у функцію.
+          # Якщо якесь значення не треба кудись передавати,
+          # пишемо перед ним discard, щоб компілятор не сварився.
+          # По суті, discard -- це функція, яка робить нічого. 
 
     # Якщо кнопка відпущена:
     self.wEvent_LeftUp do (event: wEvent):

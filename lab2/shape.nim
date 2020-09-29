@@ -107,8 +107,10 @@ proc QuickShape*(variant: ShapeVar, p1, p2: wPoint): CShape =
 
 # Слід при малюванні
 proc Trace*(p1, p2: wPoint, variant: ShapeVar): CShape =
+  # Для крапки сліду нема, вона просто малюється
+  let col = if variant == sDot: wBlack else: wRed
   return Shape(variant = variant, p1 = p1, p2 = p2,
-    penStyle = 1, isTransparent = true)
+    penStyle = 1, color = col, isTransparent = true)
 
 # Тест (цей код виконується лише тоді, коли файл
 # компілюється не як імпортований модуль, а як основний)
