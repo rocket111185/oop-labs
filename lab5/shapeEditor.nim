@@ -76,10 +76,19 @@ wClass(wShapeObjectsEditor of wEditor):
     # Тобто, у "методах" першим аргументом йде сам об'єкт.
     # Живіть з цим.
 
+  # Ця функія повертає попередній колір до фігури, яка була
+  # тоді обрана після операції, наприклад, видалення
   proc revertOldColor (self: wShapeObjectsEditor) =
+    # Якщо було видалена фігура, яка йде після тої,
+    # яка була тоді обрана (та якщо якась фігура
+    # була взагалі обрана)
     if prevIndex < shapeList.len and prevIndex != -1:
+      # Повертаємо старий колір
       shapeList[prevIndex].isChecked = false
+    # А, якщо видалили саме ту фігуру, яка була обрана,
+    # або стерто всі фігури
     else:
+      # Скидаємо індекс обраної фігури (нічого не обрано)
       prevIndex = -1
 
   # Стирання останньої фігури (дуже простим чином)
@@ -209,7 +218,7 @@ wClass(wShapeObjectsEditor of wEditor):
     toolbar.addTool(idLineOO, "ЛініяOO", Bitmap(iLineOO), "ЛініяOO")
     toolbar.addTool(idCube, "Куб", Bitmap(iCube), "Куб")
     # Розміри вікна
-    self.clientSize = (450, 400)
+    self.clientSize = (480, 400)
 
     # Ініціалізуємо поле, де малюються наші фігури
     self.mMemDc = MemoryDC()
@@ -220,6 +229,7 @@ wClass(wShapeObjectsEditor of wEditor):
     # Очищаємо екран (щоб одразу побачити ефект)
     self.clearScreen()
 
+    # Отримаємо екземпляр таблиці
     let table = getMyTableInstance()
 
     # Далі уже розписані тригери на кнопки.
@@ -250,7 +260,9 @@ wClass(wShapeObjectsEditor of wEditor):
     # Очищення екрану від усіх фігур
     self.idClear do ():
       self.removeAll()
+      # Таблицю теж очистимо
       table.clear()
+      # Тепер жодна фігура не обрана
       prevIndex = -1
 
     self.idDot do ():
@@ -280,10 +292,17 @@ wClass(wShapeObjectsEditor of wEditor):
       currentShape = sCube
       menuObjects[5].check()
 
+    # Меню з табличкою
     self.idTable do ():
+      # Після кліку статус "обрано" змінюється, а вже потім іде
+      # така перевірка
+
+      # Тобто, якщо після кліку з'явилась "галочка":
       if menuAdditional[0].isChecked:
+        # Покажемо вікно з таблицею
         table.show()
       else:
+        # Або сховаємо
         table.hide()
 
     # При клацанні на ліву кнопку миші:
@@ -309,7 +328,9 @@ wClass(wShapeObjectsEditor of wEditor):
           self.removeShape()
           # Тут колись був discard перед викликом.
           # Тепер це не треба!
+        # А, якщо крапка:
         else:
+          # Додамо безпосередньо до таблиці
           table.add($currentShape & ";" & $p1 & " - " & $p2)
 
     # Якщо кнопка відпущена:
@@ -325,30 +346,51 @@ wClass(wShapeObjectsEditor of wEditor):
       # Перемальовуємо дисплей
       self.drawScreen()
 
+    # При закриванні головного вікна "до побачення" кажуть
+    # усі вікна програми
     self.wEvent_Close do ():
       table.delete()
       self.delete()
 
+    # Якщо натиснуто кнопку "Видалити" у вікні таблиці:
     table.btnRemove.wEvent_Button do ():
+      # Отримаємо індекс обраної фігури
       let index = table.getIndex()
+      # Якщо фігура була обрана (-1, якщо не обрано нічого)
       if index > -1:
+        # Видалимо з таблиці
         table.remove index
+        # З масиву фігур
         self.removeShape index
+        # Повернемо старий колір попередньо обраній фігурі
         self.revertOldColor()
+        # Малюємо усе ще раз
         self.drawScreen()
 
+    # Якщо натиснуто кнопку "Обрати" у вікні таблиці:
     table.btnChoose.wEvent_Button do ():
+      # Отримаємо індекс обраної фігури
       let index = table.getIndex()
+      # Якщо фігура була обрана:
       if index > -1:
+        # Позначимо фігуру
         shapeList[index].isChecked = true
+      # Якщо перед цим була обрана інша фігура:
       if prevIndex > -1 and prevIndex != index:
+        # Знімемо статус "обрана"
         shapeList[prevIndex].isChecked = false
+      # Присвоюємо значення для підготовки до наступної операції
       prevIndex = index
+      # Малюємо усе ще раз
       self.drawScreen()
 
+    # Якщо натиснуто кнопку "Стерти все" у вікні таблиці:
     table.btnClear.wEvent_Button do ():
+      # Стираємо все з таблиці
       table.clear()
+      # А також звільнюємо масив фігур
       self.removeAll()
+      # Жодна фігура тепер не обрана
       prevIndex = -1
 
     

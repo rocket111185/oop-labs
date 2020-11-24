@@ -2,7 +2,10 @@ import wNim/[wApp, wFrame, wMacros, wListBox, wButton]
 
 type
   wMyTable* = ref object of wFrame
-    list*: wListBox
+    # Поля класу - графічні елементи
+    # Це дає змогу взаємодіяти з елементами вікна
+    # через сам об'єкт
+    list: wListBox
     btnRemove*, btnChoose*, btnClear*: wButton
 
 wClass(wMyTable of wFrame):
@@ -20,12 +23,16 @@ wClass(wMyTable of wFrame):
     return self.list.getSelection()
 
   proc init*(self: wMyTable) =
+    # Створимо вікно
     wFrame(self).init(title="MyTable", size=(310, 260),
       style=wCaption or wModalFrame)
+    # У вікні - елемент ListBox (присвоїмо до поля екземляру класу,
+    # щоб можна бул мати доступ до елементу через об'єкт)
     self.list = self.ListBox(pos=(0,0), size=(300, 150),
       style=wLbSingle or wLbAlwaysScroll)
 
-    # Створимо кнопки "Так" та "Відміна"
+    # Створимо кнопки "Видалити", "Позначити" та "Стерти все"
+    # Вони теж присвоєні до полів екземпляру класу
     self.btnRemove = Button(parent=self, label="Видалити", pos=(0, 170),
       size=(90, 40), style=wBuLeft)
     self.btnChoose = Button(parent=self, label="Позначити", pos=(100, 170),
