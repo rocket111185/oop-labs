@@ -50,6 +50,8 @@ var
   shapeList: seq[CShape]
   # Точки позиції.
   p1, p2: wPoint
+  # Попередній індекс позначеної фігури
+  prevIndex = -1
 
 
 # Макрос, який створює конструктор для даного класу на
@@ -73,6 +75,12 @@ wClass(wShapeObjectsEditor of wEditor):
     # Річ у тому, що a.fn(b) ідентично fn(a, b)
     # Тобто, у "методах" першим аргументом йде сам об'єкт.
     # Живіть з цим.
+
+  proc revertOldColor (self: wShapeObjectsEditor) =
+    if prevIndex < shapeList.len and prevIndex != -1:
+      shapeList[prevIndex].isChecked = false
+    else:
+      prevIndex = -1
 
   # Стирання останньої фігури (дуже простим чином)
   proc removeShape(self: wShapeObjectsEditor, index = shapeList.len - 1): bool {.discardable, raises: [].} =
@@ -132,7 +140,8 @@ wClass(wShapeObjectsEditor of wEditor):
     # А потім для кожної фігури:
     for s in shapeList:
       # Установити ручку та пензель залежно від параметрів фігури
-      self.mMemDc.setPen(Pen(s.color, s.penStyle, s.penWidth))
+      self.mMemDc.setPen(Pen(if s.isChecked: wGold
+        else: s.color, s.penStyle, s.penWidth))
       self.mMemDc.setBrush(if s.isTransparent: wTransparentBrush
         else: Brush(color = s.fill))
       # Якби не вмонтований збирач сміття, нам би доводилось
@@ -211,7 +220,7 @@ wClass(wShapeObjectsEditor of wEditor):
     # Очищаємо екран (щоб одразу побачити ефект)
     self.clearScreen()
 
-    let table = MyTable()
+    let table = getMyTableInstance()
 
     # Далі уже розписані тригери на кнопки.
     # Вони виглядають більш симпатично, ніж
@@ -229,6 +238,7 @@ wClass(wShapeObjectsEditor of wEditor):
       # Для скасування видаляємо останню фігуру
       # І, якщо це вдалось (стек був не порожнім):
       if self.removeShape():
+        self.revertOldColor()
         # Перемальовуємо вікно
         self.drawScreen()
         table.remove()
@@ -241,6 +251,7 @@ wClass(wShapeObjectsEditor of wEditor):
     self.idClear do ():
       self.removeAll()
       table.clear()
+      prevIndex = -1
 
     self.idDot do ():
       currentShape = sDot
@@ -319,14 +330,26 @@ wClass(wShapeObjectsEditor of wEditor):
       self.delete()
 
     table.btnRemove.wEvent_Button do ():
-      let index = table.list.getSelection()
-      table.remove index
-      self.removeShape index
+      let index = table.getIndex()
+      if index > -1:
+        table.remove index
+        self.removeShape index
+        self.revertOldColor()
+        self.drawScreen()
+
+    table.btnChoose.wEvent_Button do ():
+      let index = table.getIndex()
+      if index > -1:
+        shapeList[index].isChecked = true
+      if prevIndex > -1 and prevIndex != index:
+        shapeList[prevIndex].isChecked = false
+      prevIndex = index
       self.drawScreen()
 
     table.btnClear.wEvent_Button do ():
       table.clear()
       self.removeAll()
+      prevIndex = -1
 
     
     # Кожного разу, коли малюється, копіювати з пам'яті на дисплей.

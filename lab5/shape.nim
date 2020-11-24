@@ -36,6 +36,8 @@ type
     fill*: wColor
     # чиПрозора
     isTransparent*: bool
+    # чиПозначена
+    isChecked*: bool
     # Стек підфігур
     stack*: seq[CShape]
 
@@ -91,6 +93,7 @@ proc Shape(variant = sDot, p1 = (0, 0), p2 = (0, 0),
   shape.color = color
   shape.fill = fill
   shape.isTransparent = isTransparent
+  shape.isChecked = false
   shape.stack = stack
   # Повернемо екземпляр
   return shape

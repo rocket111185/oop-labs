@@ -3,7 +3,7 @@ import wNim/[wApp, wFrame, wMacros, wListBox, wButton]
 type
   wMyTable* = ref object of wFrame
     list*: wListBox
-    btnRemove*, btnClear*: wButton
+    btnRemove*, btnChoose*, btnClear*: wButton
 
 wClass(wMyTable of wFrame):
   
@@ -16,25 +16,24 @@ wClass(wMyTable of wFrame):
   proc clear*(self: wMyTable) =
     self.list.clear()
 
+  proc getIndex*(self: wMyTable): int =
+    return self.list.getSelection()
+
   proc init*(self: wMyTable) =
     wFrame(self).init(title="MyTable", size=(310, 260),
-      style=wCaption)
+      style=wCaption or wModalFrame)
     self.list = self.ListBox(pos=(0,0), size=(300, 150),
       style=wLbSingle or wLbAlwaysScroll)
 
     # Створимо кнопки "Так" та "Відміна"
     self.btnRemove = Button(parent=self, label="Видалити", pos=(0, 170),
-      size=(120, 40), style=wBuLeft)
-    self.btnClear = Button(parent=self, label="Стерти все", pos=(170, 170),
-      size=(120, 40), style=wBuRight)
+      size=(90, 40), style=wBuLeft)
+    self.btnChoose = Button(parent=self, label="Позначити", pos=(100, 170),
+      size=(90, 40), style=wBuLeft)
+    self.btnClear = Button(parent=self, label="Стерти все", pos=(200, 170),
+      size=(90, 40), style=wBuRight)
 
-when isMainModule:
-  let app = App()
-  let table = MyTable()
+let myTableSingleton = MyTable()
 
-  for i in 0..20:
-    table.add($i)
-
-  table.center()
-  table.show()
-  app.mainLoop()
+proc getMyTableInstance*(): wMyTable =
+  return myTableSingleton
