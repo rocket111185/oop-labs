@@ -34,8 +34,8 @@ proc obj2Wind(n, min, max: string) =
     pmin = parseFloat(min) # з плавачою комою
     pmax = parseFloat(max) # з плавачою комою
 
-  # Якщо n < 0
-  if pn < 0:
+  # Якщо n < 1
+  if pn < 1:
     # Покажемо вікно з помилкою, закриємо програму
     ShowDialog("n має бути більше, ніж 0", true)
   # Якщо min < max

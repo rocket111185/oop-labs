@@ -46,21 +46,24 @@ buttonOk.wEvent_Button do ():
     max = textctrlMax.value
   # Якщо жодне з полів не є порожнім
   if n.len > 0 and min.len > 0 and max.len > 0:
-    # Закриємо основне вікно
-    dialog.close()
+    # Сховаємо основне вікно
+    dialog.hide()
     # Запустимо програму Object2.exe
     # У ній 3 аргументи, які розділені пробілом
     # Можемо створити масив з необхідних стрічок та
     # об'єднати їх в одну стрічку, причому вони будуть
     # розділені пробілом.
     # 
-    # execShellCmd() вертає число.
-    # Нім не любить, коли ми якесь значення нікуди
-    # не передали, або не присвоїли.
-    # Передамо у функцію discard (нічогоНеРоби)
-    discard execShellCmd(["Object2.exe", n, min, max].join(" "))
-    # Після відпрацювання Object2.exe запуститься Object3.exe
-    discard execShellCmd("Object3.exe")
+    # execShellCmd() запустає програму та вертає число:
+    # 0 - все добре, 1 - все погано
+    if execShellCmd(["Object2.exe", n, min, max].join(" ")) < 1:
+      # Після відпрацювання Object2.exe запуститься Object3.exe
+      discard execShellCmd("Object3.exe")
+      # Нім не любить, коли ми якесь значення нікуди
+      # не передали, або не присвоїли.
+      # Передамо у функцію discard (нічогоНеРоби)
+    # Покажемо основне вікно
+    dialog.show()
 
 # Якщо натиснути на кнопку "Скасувати"
 buttonCancel.wEvent_Button do ():
